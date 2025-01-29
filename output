@@ -1,0 +1,23 @@
+------------- OLD Model ---------------
+Acertos: 19390
+Erros: 5986
+Falsos Positivos: 2965
+Falsos Negativos: 3021
+
+Erro: 23.59%
+Acurácia: 76.41%
+Precisão: 85.92% (Proporção de positivos classificados corretamente)
+Recall: 85.69% (Proporção de positivos corretamente identificados)
+F1-Score: 0.8580507469765235 (Média harmônica de precisão e recall)
+
+------------- NEW Model ---------------
+Acertos: 20966
+Erros: 4410
+Falsos Positivos: 4236
+Falsos Negativos: 174
+
+Erro: 17.38%
+Acurácia: 82.62%
+Precisão: 83.17% (Proporção de positivos classificados corretamente)
+Recall: 99.18% (Proporção de positivos corretamente identificados)
+F1-Score: 0.9047269270653301 (Média harmônica de precisão e recall)
