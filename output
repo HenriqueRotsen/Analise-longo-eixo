@@ -1,23 +1,23 @@
 ------------- OLD Model ---------------
-Acertos: 19390
-Erros: 5986
-Falsos Positivos: 2965
-Falsos Negativos: 3021
+Acertos: 24756
+Erros: 620
+Falsos Positivos: 189
+Falsos Negativos: 431
 
-Erro: 23.59%
-Acurácia: 76.41%
-Precisão: 85.92% (Proporção de positivos classificados corretamente)
-Recall: 85.69% (Proporção de positivos corretamente identificados)
-F1-Score: 0.8580507469765235 (Média harmônica de precisão e recall)
+Erro: 2.44%
+Acurácia: 97.56%
+Precisão: 99.1% (Proporção de positivos classificados corretamente)
+Recall: 97.98% (Proporção de positivos corretamente identificados)
+F1-Score: 0.9853621682878458 (Média harmônica de precisão e recall)
 
 ------------- NEW Model ---------------
-Acertos: 20966
-Erros: 4410
-Falsos Positivos: 4236
-Falsos Negativos: 174
+Acertos: 21154
+Erros: 4222
+Falsos Positivos: 4049
+Falsos Negativos: 173
 
-Erro: 17.38%
-Acurácia: 82.62%
-Precisão: 83.17% (Proporção de positivos classificados corretamente)
-Recall: 99.18% (Proporção de positivos corretamente identificados)
-F1-Score: 0.9047269270653301 (Média harmônica de precisão e recall)
+Erro: 16.64%
+Acurácia: 83.36%
+Precisão: 83.92% (Proporção de positivos classificados corretamente)
+Recall: 99.19% (Proporção de positivos corretamente identificados)
+F1-Score: 0.9091535051856953 (Média harmônica de precisão e recall)

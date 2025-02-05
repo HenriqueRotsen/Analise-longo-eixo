@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, splitext
 
 
 class Avaliador:
@@ -19,16 +19,35 @@ class Avaliador:
         self.dentes = gera_dentes()
 
     def obtem_dados(self, model_path):
+        # Listar e ordenar arquivos das duas pastas
         files_folder_output = sorted(
             [f for f in listdir(model_path) if isfile(join(model_path, f))]
-        )  # Arquivos da pasta output
+        )
         files_folder_anotacao = sorted(
             [
                 f
                 for f in listdir(self.anotacao_path)
                 if isfile(join(self.anotacao_path, f))
             ]
-        )  # Arquivos da pasta anotacao
+        )
+
+        # Obter conjunto de nomes base (sem extensão) para comparação
+        base_output = {splitext(f)[0] for f in files_folder_output}
+        base_anotacao = {splitext(f)[0] for f in files_folder_anotacao}
+
+        # Manter apenas arquivos com nomes base comuns
+        common_bases = base_output & base_anotacao  # Interseção dos conjuntos
+        uncommon_bases = (base_output - base_anotacao) | (base_anotacao - base_output)
+
+
+        # Filtrar listas originais para manter apenas arquivos correspondentes
+        files_folder_output = [
+            f for f in files_folder_output if splitext(f)[0] in common_bases
+        ]
+        files_folder_anotacao = [
+            f for f in files_folder_anotacao if splitext(f)[0] in common_bases
+        ]
+
         return files_folder_anotacao, files_folder_output
 
     def calcula_metricas(self):
@@ -76,6 +95,10 @@ class Avaliador:
         for file_ot, file_an in zip(files_folder_output, files_folder_anotacao):
             ot = read_file(self.old_model_path + file_ot)
             an = read_file(self.anotacao_path + file_an)
+
+            if(splitext(file_ot)[0] != splitext(file_an)[0]):
+                print("ERRO: Arquivos diferentes")
+
 
             self.total_dentes += 32
 

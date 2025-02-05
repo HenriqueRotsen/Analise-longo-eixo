@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, splitext
 
 
 class Avaliador:
@@ -20,16 +20,33 @@ class Avaliador:
         self.dentes = gera_dentes()
 
     def obtem_dados(self, model_path):
+        # Listar e ordenar arquivos das duas pastas
         files_folder_output = sorted(
             [f for f in listdir(model_path) if isfile(join(model_path, f))]
-        )  # Arquivos da pasta output
+        )
         files_folder_anotacao = sorted(
             [
                 f
                 for f in listdir(self.anotacao_path)
                 if isfile(join(self.anotacao_path, f))
             ]
-        )  # Arquivos da pasta anotacao
+        )
+
+        # Obter conjunto de nomes base (sem extensão) para comparação
+        base_output = {splitext(f)[0] for f in files_folder_output}
+        base_anotacao = {splitext(f)[0] for f in files_folder_anotacao}
+
+        # Manter apenas arquivos com nomes base comuns
+        common_bases = base_output & base_anotacao  # Interseção dos conjuntos
+
+        # Filtrar listas originais para manter apenas arquivos correspondentes
+        files_folder_output = [
+            f for f in files_folder_output if splitext(f)[0] in common_bases
+        ]
+        files_folder_anotacao = [
+            f for f in files_folder_anotacao if splitext(f)[0] in common_bases
+        ]
+
         return files_folder_anotacao, files_folder_output
 
     def calcula_metricas(self):
@@ -55,22 +72,11 @@ class Avaliador:
         return erro, acuracia, precisao, recall, f1_score
 
 
-
 class MonteCarloAvaliador(Avaliador):
     def __init__(self, num_iteracoes=1000, amostra_tamanho=0.7):
         super().__init__()
         self.num_iteracoes = num_iteracoes
         self.amostra_tamanho = amostra_tamanho  # Proporção de dados usados por iteração
-
-    def sincroniza_listas(self, files_anotacao, files_output):
-        # Remover os últimos 7 arquivos da lista maior
-        if len(files_anotacao) > len(files_output):
-            files_anotacao = files_anotacao[:len(files_output)]
-        elif len(files_output) > len(files_anotacao):
-            files_output = files_output[:len(files_anotacao)]
-
-        return files_anotacao, files_output
-
 
     def monte_carlo(self, modelo="old"):
         metricas = {
@@ -84,11 +90,6 @@ class MonteCarloAvaliador(Avaliador):
         # Obter dados apropriados para o modelo
         model_path = self.old_model_path if modelo == "old" else self.new_model_path
         files_folder_anotacao, files_folder_output = self.obtem_dados(model_path)
-
-        # Sincronizar listas
-        files_folder_anotacao, files_folder_output = self.sincroniza_listas(
-            files_folder_anotacao, files_folder_output
-        )
 
         for _ in range(self.num_iteracoes):
             # Resetar contadores
@@ -120,7 +121,7 @@ class MonteCarloAvaliador(Avaliador):
                     ]
                     dente_an = [entity for entity in an if entity["label"] == dente]
 
-                    if modelo=="old":
+                    if modelo == "old":
                         if dente_ot:
                             if dente_an:
                                 if dente_ot[0]["score"] > 0.1:

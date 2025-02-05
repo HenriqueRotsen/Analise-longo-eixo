@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, splitext
 
 
 class Avaliador:
@@ -12,9 +12,18 @@ class Avaliador:
         self.old_model_path = "test/output_longaxis_old/"
         self.new_model_path = "test/output_longaxis_standard/"
         self.dentes = gera_dentes()
-        self.metricas_por_dente = {dente: {"acertos": 0, "verdadeiros_positivos": 0, "falsos_positivos": 0, "falsos_negativos": 0} for dente in self.dentes}
+        self.metricas_por_dente = {
+            dente: {
+                "acertos": 0,
+                "verdadeiros_positivos": 0,
+                "falsos_positivos": 0,
+                "falsos_negativos": 0,
+            }
+            for dente in self.dentes
+        }
 
     def obtem_dados(self, model_path):
+        # Listar e ordenar arquivos das duas pastas
         files_folder_output = sorted(
             [f for f in listdir(model_path) if isfile(join(model_path, f))]
         )
@@ -25,44 +34,84 @@ class Avaliador:
                 if isfile(join(self.anotacao_path, f))
             ]
         )
+
+        # Obter conjunto de nomes base (sem extensão) para comparação
+        base_output = {splitext(f)[0] for f in files_folder_output}
+        base_anotacao = {splitext(f)[0] for f in files_folder_anotacao}
+
+        # Manter apenas arquivos com nomes base comuns
+        common_bases = base_output & base_anotacao  # Interseção dos conjuntos
+
+        # Filtrar listas originais para manter apenas arquivos correspondentes
+        files_folder_output = [
+            f for f in files_folder_output if splitext(f)[0] in common_bases
+        ]
+        files_folder_anotacao = [
+            f for f in files_folder_anotacao if splitext(f)[0] in common_bases
+        ]
+
         return files_folder_anotacao, files_folder_output
 
     def calcula_metricas(self):
         metricas = {}
         for dente, valores in self.metricas_por_dente.items():
-            total = valores["acertos"] + valores["falsos_positivos"] + valores["falsos_negativos"]
+            total = (
+                valores["acertos"]
+                + valores["falsos_positivos"]
+                + valores["falsos_negativos"]
+            )
             if total == 0:
                 continue
             erro = (valores["falsos_positivos"] + valores["falsos_negativos"]) / total
             acuracia = valores["acertos"] / total
-            precisao = valores["verdadeiros_positivos"] / (valores["verdadeiros_positivos"] + valores["falsos_positivos"])
-            recall = valores["verdadeiros_positivos"] / (valores["verdadeiros_positivos"] + valores["falsos_negativos"])
-            f1_score = (2 * precisao * recall) / (precisao + recall) if precisao + recall > 0 else 0
-            metricas[dente] = {"erro": erro, "acuracia": acuracia, "precisao": precisao, "recall": recall, "f1_score": f1_score}
+            precisao = valores["verdadeiros_positivos"] / (
+                valores["verdadeiros_positivos"] + valores["falsos_positivos"]
+            )
+            recall = valores["verdadeiros_positivos"] / (
+                valores["verdadeiros_positivos"] + valores["falsos_negativos"]
+            )
+            f1_score = (
+                (2 * precisao * recall) / (precisao + recall)
+                if precisao + recall > 0
+                else 0
+            )
+            metricas[dente] = {
+                "erro": erro,
+                "acuracia": acuracia,
+                "precisao": precisao,
+                "recall": recall,
+                "f1_score": f1_score,
+            }
         return metricas
 
     def mostra_metricas(self):
         metricas = self.calcula_metricas()
         for dente, valores in metricas.items():
-            print(f"Dente {dente}: Erro: {valores['erro']:.2f}, Acurácia: {valores['acuracia']:.2f}, Precisão: {valores['precisao']:.2f}, Recall: {valores['recall']:.2f}, F1-Score: {valores['f1_score']:.2f}")
+            print(
+                f"Dente {dente}: Erro: {valores['erro']:.2f}, Acurácia: {valores['acuracia']:.2f}, Precisão: {valores['precisao']:.2f}, Recall: {valores['recall']:.2f}, F1-Score: {valores['f1_score']:.2f}"
+            )
 
     def avalia_modelo(self, model_path, modelo="old"):
         files_folder_anotacao, files_folder_output = self.obtem_dados(model_path)
-        
+
         for file_ot, file_an in zip(files_folder_output, files_folder_anotacao):
             ot = read_file(model_path + file_ot)
             an = read_file(self.anotacao_path + file_an)
-            
+
             for dente in self.dentes:
-                dente_ot = [entity for entity in ot["entities"] if entity["class_name"] == dente]
+                dente_ot = [
+                    entity for entity in ot["entities"] if entity["class_name"] == dente
+                ]
                 dente_an = [entity for entity in an if entity["label"] == dente]
-                
-                if modelo=="old":
+
+                if modelo == "old":
                     if dente_ot:
                         if dente_an:
                             if dente_ot[0]["score"] > 0.1:
                                 self.metricas_por_dente[dente]["acertos"] += 1
-                                self.metricas_por_dente[dente]["verdadeiros_positivos"] += 1
+                                self.metricas_por_dente[dente][
+                                    "verdadeiros_positivos"
+                                ] += 1
                             elif dente_ot[0]["score"] < 0.1:
                                 self.metricas_por_dente[dente]["falsos_negativos"] += 1
                         else:
@@ -90,7 +139,9 @@ def read_file(file_path):
 
 
 def gera_dentes():
-    return [f"{quadrante}{posicao}" for quadrante in range(1, 5) for posicao in range(1, 9)]
+    return [
+        f"{quadrante}{posicao}" for quadrante in range(1, 5) for posicao in range(1, 9)
+    ]
 
 
 def visualiza_metricas(avaliador, titulo):
@@ -129,8 +180,6 @@ def visualiza_metricas(avaliador, titulo):
 
     plt.tight_layout()
     plt.show()
-
-
 
 
 if __name__ == "__main__":
